@@ -1,0 +1,33 @@
+FT.test <- function(mat, alpha=0.05)
+  # Test of Freeman-Tukey statistic, Numerical Ecology (2012) eq. 6.29
+  # Pierre Legendre, April 2011
+{
+  mat = as.matrix(mat)
+  r = nrow(mat)
+  c = ncol(mat)
+  df = (r-1)*(c-1)
+  N = sum(mat)
+  r.marg = matrix(apply(mat,1,sum), r, 1)
+  c.marg = matrix(apply(mat,2,sum), 1, c)
+  E = (r.marg %*% c.marg)/N
+  # 
+  FT = sqrt(mat) + sqrt(mat+1) - sqrt(4*E + 1)
+  #
+  # First, correct for r*c simultaneous tests: 
+  # test all cells
+  chi.rc  = qchisq(0.05/(r*c), df=1, lower.tail=FALSE)
+  crit.rc = sqrt(df * chi.rc/(r*c))
+  #
+  # Second, correct for 'mult' simultaneous tests: 
+  # test only the cells where 5 <= E <= (n-5)
+  mult = length(which((E >= 5) & (E <= (N-5))))
+  chi  = qchisq(0.05/mult, df=1, lower.tail=FALSE)
+  crit = sqrt(df * chi/mult)
+  #
+  out = list(E=E, FT=FT, df=df, mult=mult, chi=c(chi.rc,chi), crit=c(crit.rc,crit))
+  out
+}
+
+### Example dataset for 'attacked' versus 'Non-attacked' models test
+
+FG.Wide.Reds&Control = matrix(c(38,21,32,341,363,349) , 3, 2)
